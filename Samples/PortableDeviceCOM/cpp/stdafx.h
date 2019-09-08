@@ -42,6 +42,7 @@ using namespace Microsoft::WRL;
 
 #include <PortableDeviceApi.h>      // Include this header for Windows Portable Device API interfaces
 #include <PortableDevice.h>         // Include this header for Windows Portable Device definitions
+#include <wpdmtpextensions.h>
 #include "CommonFunctions.h"        // Includes common prototypes for functions used across source files
 
 #define SELECTION_BUFFER_SIZE 81    // Buffer size for user selection

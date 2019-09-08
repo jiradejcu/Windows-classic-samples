@@ -62,6 +62,87 @@ void UnregisterForEventNotifications(_In_opt_ IPortableDevice* device, _In_opt_ 
 
 // Misc.
 void GetObjectIdentifierFromPersistentUniqueIdentifier(_In_ IPortableDevice* device);
+void CaptureStillImage(_In_ IPortableDevice* device);
+
+void CaptureStillImage(_In_ IPortableDevice* device)
+{
+	wprintf(L"Capture Still Image Start\n");
+	ComPtr<IPortableDeviceValues> params;
+	ComPtr<IPortableDeviceValues> results;
+
+	HRESULT hr = CoCreateInstance(CLSID_PortableDeviceValues,
+		nullptr,
+		CLSCTX_INPROC_SERVER,
+		IID_PPV_ARGS(&params));
+
+	if (SUCCEEDED(hr))
+	{
+		hr = params->SetGuidValue(WPD_PROPERTY_COMMON_COMMAND_CATEGORY,
+			WPD_COMMAND_MTP_EXT_EXECUTE_COMMAND_WITHOUT_DATA_PHASE.fmtid);
+
+		if (SUCCEEDED(hr))
+		{
+			hr = params->SetUnsignedIntegerValue(WPD_PROPERTY_COMMON_COMMAND_ID,
+				WPD_COMMAND_MTP_EXT_EXECUTE_COMMAND_WITHOUT_DATA_PHASE.pid);
+
+			if (SUCCEEDED(hr))
+			{
+				hr = params->SetUnsignedIntegerValue(WPD_PROPERTY_MTP_EXT_OPERATION_CODE,
+					0x100E);
+
+				// InitiateCapture requires 3 params - storage ID, object format, and parent object handle   
+				// Parameters need to be first put into a PropVariantCollection
+
+				ComPtr<IPortableDevicePropVariantCollection> mtpParams;
+				if (hr == S_OK)
+				{
+					hr = CoCreateInstance(CLSID_PortableDevicePropVariantCollection,
+						NULL,
+						CLSCTX_INPROC_SERVER,
+						IID_IPortableDevicePropVariantCollection,
+						(VOID * *)& mtpParams);
+				}
+
+				PROPVARIANT pvParam = { 0 };
+				pvParam.vt = VT_UI4;
+
+				if (hr == S_OK)
+				{
+					pvParam.ulVal = 0x0;
+					hr = mtpParams->Add(&pvParam);
+				}
+
+				if (hr == S_OK)
+				{
+					pvParam.ulVal = 0x0;
+					hr = mtpParams->Add(&pvParam);
+				}
+
+				if (hr == S_OK)
+				{
+					pvParam.ulVal = 0x0;
+					hr = mtpParams->Add(&pvParam);
+				}
+
+				if (hr == S_OK)
+				{
+					hr = params->SetIPortableDevicePropVariantCollectionValue(
+						WPD_PROPERTY_MTP_EXT_OPERATION_PARAMS, mtpParams.Detach());
+				}
+
+				if (SUCCEEDED(hr))
+				{
+					hr = device->SendCommand(0, params.Get(), &results);
+
+					if (SUCCEEDED(hr))
+					{
+						wprintf(L"Capture Still Image Success\n");
+					}
+				}
+			}
+		}
+	}
+}
 
 void DoMenu()
 {
@@ -239,6 +320,9 @@ void DoMenu()
                                           L"VCARD (*.VCF)\0*.VCF\0\0",
                                           L"VCF");
                     break;
+				case 30:
+					CaptureStillImage(device.Get());
+					break;
                 default:
                     break;
             }
