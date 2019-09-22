@@ -146,9 +146,10 @@ void CaptureStillImage(_In_ IPortableDevice* device)
 
 void DoMenu()
 {
-    HRESULT hr                  = S_OK;
-    UINT    selectionIndex      = 0;
-    PWSTR   eventCookie         = nullptr;
+    HRESULT hr						= S_OK;
+    UINT    selectionIndex			= 0;
+	UINT	previousSelectionIndex	= 0;
+    PWSTR   eventCookie				= nullptr;
     WCHAR   selectionString[SELECTION_BUFFER_SIZE] = {0};
     ComPtr<IPortableDevice> device;
 
@@ -197,11 +198,20 @@ void DoMenu()
         wprintf(L"26. Update Image content (properties and data) on the device\n");
         wprintf(L"27. Update Music content (properties and data) on the device\n");
         wprintf(L"28. Update Contact content (properties and data) on the device\n");
+		wprintf(L"30. Capture Still Image using the device\n");
         wprintf(L"99. Exit\n");
         hr = StringCchGetsW(selectionString, ARRAYSIZE(selectionString));
         if (SUCCEEDED(hr))
         {
-            selectionIndex = static_cast<UINT>(_wtoi(selectionString));
+			if (wcslen(selectionString) > 0)
+			{
+				selectionIndex = static_cast<UINT>(_wtoi(selectionString));
+				previousSelectionIndex = selectionIndex;
+			} 
+			else
+			{
+				selectionIndex = previousSelectionIndex;
+			}
             switch (selectionIndex)
             {
                 case 0:
